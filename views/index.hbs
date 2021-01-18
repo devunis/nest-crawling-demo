@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <title>App</title>
+  </head>
+  <body>
+    {{ message }}
+    <button onclick='sendLink()'>크롤링하기</button>
+    <ul>
+    {{#each posts}}
+      <li><a href="post/{{id}}">{{title}}</a></li>
+    {{/each}}
+    </ul>
+    <script>
+      var sendLink = () => {
+        console.log($('input').val())
+        $.ajax({
+          method: 'GET',
+          url: 'crawl',
+          data: {
+            link : $('input').val()
+            }
+        })
+      }
+    </script>
+  </body>
+</html>
