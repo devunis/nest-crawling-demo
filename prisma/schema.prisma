@@ -10,10 +10,18 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model Post {
-  id Int @default(autoincrement()) @id
-  title     String  @unique
-  content   String?
-
+model Article{
+  id               Int               @default(autoincrement()) @id
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime?
+  deletedAt        DateTime?
+  thumbnail        String?
+  title            String
+  content          String?
+  author           String
+  authorPic        String?
+  url              String
+  hashtag          String?
+  uid              String           @unique
 }
 

@@ -1,35 +1,29 @@
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CrawlService } from './crawl/crawl.service';
 import { AppService } from './app.service';
-import { Body, Controller, Get, Param, Post, Render, Res } from '@nestjs/common';
-import {PostService} from './post/post.service'
-
+import { Body, Controller, Get, Param, Render, Res } from '@nestjs/common';
 @Controller()
 export class AppController {
   constructor(
     private readonly appService: AppService, 
-    private crawlService: CrawlService, 
-    private readonly postService: PostService){}
+    private crawlService: CrawlService,
+    private prisma: PrismaService
+  ){}
 
   @Get()
   @Render('index')
   async getHello() {
-    const postlist = await this.postService.posts({}).then(res=> res)
+    const articlelist = await this.prisma.article.findMany().then(res=> res);
     
     return { 
       message : this.appService.getHello(),
-      posts: postlist
+      articles: articlelist.reverse()
     }
   }
 
   @Get('crawl')
   crawl(@Body() data: {link: string}){
     return this.crawlService.crawl(data.link);
-  }
-
-  @Get('post/:id')
-  async getPostById(@Param('id') id: number) : Promise<{}> 
-  {
-    return (await this.postService.post({ id: Number(id) })).content;
   }
 
   // @Post('post')

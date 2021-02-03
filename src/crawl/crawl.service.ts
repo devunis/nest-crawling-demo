@@ -1,64 +1,77 @@
-import { PostService } from './../post/post.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { Injectable, HttpService } from '@nestjs/common';
-import cheerio = require('cheerio')
+import * as cheerio from 'cheerio';
 
 @Injectable()
 export class CrawlService {
-    constructor(private http: HttpService, private postService: PostService){}
+    constructor(private http: HttpService, private prisma: PrismaService){}
     async crawl(link : string):Promise<any>{
-        const data = await this.http.get(`https://woowabros.github.io/`)
+        const crawl_uri = 'https://woowabros.github.io/'
+        const data = await this.http.get(crawl_uri)
             .toPromise()
             .then(res=>res.data);
         const $ = cheerio.load(data);
 
-        $('.list-module').each(
-            async ()=>{
-                console.log(this);
-                
-                const $meta = $(this).find('.postmeta').text();
-                const $title = $(this).find('.post-link').text();
-                const $description = $(this).find('.post-description').text();
-                const $img = $(this).find('.gravatar').attr('src');
-                const $url = $(this).find('a.list-module');
+        const list = $('.list-module');
+
+        for (let i = 1; i <= list.length; i ++){
+            const $data = $(list.eq(-i));
+        
+            const $id = $data.find('a').attr('href').split('/').slice(2).join('').replace('.html','');
+            const $title = $data.find('.post-link').text()
+            const $content = $data.find('.post-description').text()
+            const $author = $data.find('.post-meta').text().split(',')[2].trim()
+            const $img = $data.find('.gravatar').attr('src');
+            const $url = $data.find('a').attr('href');
+
+            await this.prisma.article.create({
+                data:{
+                    title: $title,
+                    author: $author,
+                    authorPic: $img,
+                    url: `https://woowabros.github.io${$url}`,
+                    content: $content, 
+                    uid: $id,
+                }
+            }).then(
+                res=>console.log(res)
+            ).catch(
+                err=>console.log(err)
+            )
+        }
+        
+
+        // $('.list-module').each(
+        //     async(i, elem) => {
+        //         const $data = $(elem);
+        
+        //         const $id = $data.find('a').attr('href').split('/').slice(2).join('-').replace('.html','');
+        //         const $title = $data.find('.post-link').text()
+        //         const $content = $data.find('.post-description').text()
+        //         const $author = $data.find('.post-meta').text().split(',')[2].trim()
+        //         const $img = $data.find('.gravatar').attr('src');
+        //         const $url = $data.find('a').attr('href');
+
+        //         console.log(i);
                 
 
-                // const route = $url.attr('href');
-                // const content = await this.http.get(`https://woowabros.github.io/${route}`)
-                //     .toPromise()
-                //     .then(res=>res.data);
-                // const $content = cheerio.load(content);
-                // const contents =  $content('.post-content').html();
-
-                // this.postService.createPost(
-                //     {'title': $title, 'content': contents }
+                // await this.prisma.article.create({
+                //     data:{
+                //         title: $title,
+                //         author: $author,
+                //         authorPic: $img,
+                //         url: `https://woowabros.github.io/${$url}`,
+                //         content: $content, 
+                //         uid: $id,
+                //     }
+                // }).then(
+                //     res=>console.log(res)
+                // ).catch(
+                //     err=>console.log(err)
                 // )
-                // console.log('-----------------------------------');
-            }
-        )
-
-        // for (let i = 0 ; i < 5; i ++){
-        //     const title = $title.eq(i).html();
-
-        //     console.log($title.eq(i).html());
-        //     console.log($description.eq(i).html());
-        //     console.log($meta.eq(i).text().trim());
-        //     // console.log($img.eq(i).attr('src'));
-
-        //     const route = $url.eq(i).attr('href');
-        //     const content = await this.http.get(`https://woowabros.github.io/${route}`)
-        //         .toPromise()
-        //         .then(res=>res.data);
-        //     const $content = cheerio.load(content);
-        //     const contents =  $content('.post-content').html();
-
-        //     this.postService.createPost(
-        //         {title, 'content':contents }
-        //     )
-        //     console.log(i);
-            
-        //     console.log('-----------------------------------');
-        // }
-
+                
+        //       }
+        // )
         return "done";
     }
 }

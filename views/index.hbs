@@ -9,8 +9,8 @@
     {{ message }}
     <button onclick='sendLink()'>크롤링하기</button>
     <ul>
-    {{#each posts}}
-      <li><a href="post/{{id}}">{{title}}</a></li>
+    {{#each articles}}
+      <li><a href="{{url}}">{{title}}</a></li>
     {{/each}}
     </ul>
     <script>
@@ -19,9 +19,6 @@
         $.ajax({
           method: 'GET',
           url: 'crawl',
-          data: {
-            link : $('input').val()
-            }
         })
       }
     </script>
